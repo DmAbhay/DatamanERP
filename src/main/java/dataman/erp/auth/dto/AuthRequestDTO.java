@@ -15,6 +15,7 @@ public class AuthRequestDTO {
     private String password;
     private String userDescription;
     private String regionalLanguage;
+    private String loginMode;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private Date loginDate;

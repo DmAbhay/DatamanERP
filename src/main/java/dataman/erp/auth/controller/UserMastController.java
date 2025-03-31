@@ -5,8 +5,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import dataman.dmbase.debug.Debug;
 import dataman.dmbase.redissessionutil.RedisObjectUtil;
 import dataman.dmbase.redissessionutil.RedisSimpleKeyValuePairUtil;
+import dataman.erp.auth.enums.LoginMode;
 import dataman.erp.auth.dto.AuthRequestDTO;
 import dataman.erp.auth.dto.LoginResponseDTO;
+import dataman.erp.auth.util.Util;
 import dataman.erp.context.PCSDataStore;
 import dataman.erp.dmbase.models.CompanyDetailDTO;
 import dataman.erp.dmbase.models.PCSData;
@@ -30,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -65,6 +68,9 @@ public class UserMastController {
     @Autowired
     private PCSDataStore pcsDataStore;
 
+    @Autowired
+    private Util util;
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequestDTO authRequest) {
@@ -72,15 +78,49 @@ public class UserMastController {
 
         try {
 
+            System.out.println(authRequest);
+            System.out.println(LoginMode.getByCode(1));
+
+            if(Integer.parseInt(authRequest.getLoginMode()) != 3){
+                String loginMode = LoginMode.getByCode(Integer.parseInt(authRequest.getLoginMode()));
+
+                Map<String, String> userCredentials = util.getUserCredentials(authRequest.getUsername(), loginMode);
+
+                if(userCredentials != null){
+
+                    authRequest.setUsername(userCredentials.get("user_Name"));
+                    //authRequest.setPassword(userCredentials.get("passWd"));
+
+                }else{
+                    throw new BadCredentialsException("Invalid email or password");
+                }
+            }
+
+
+            System.out.println(authRequest);
+
+
             // Authenticate the user
             System.out.println(authRequest.getUsername());
             System.out.println(authRequest.getPassword());
+
+//            if(Integer.parseInt(authRequest.getLoginMode()) == 3){
+//                System.out.println("Come as for execution");
+//                authenticationManager.authenticate(
+//                        new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
+//                );
+//            }
+
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
             );
+
+
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
+
+        System.out.println("User Validated!!!!!!!!!!!!!!!!!!");
 
         PCSData pcsData = new PCSData();
         pcsData.setUserName(authRequest.getUsername());
@@ -144,7 +184,7 @@ public class UserMastController {
             pcsData.setPltSelected(listOfPlts.get(0));
             List<CompanyDetailDTO> listOfCompany = pcsDataMapper.mapToCompanyDetailDTOList(dmBaseService.getCompanys(authRequest.getUsername(), selectedPltCode, companyDB));
             if((listOfCompany != null) && (listOfCompany.size() == 1)){
-            //if(true){
+                //if(true){
                 pcsData.setCSelected(listOfCompany.get(0));
                 String selectedCompCode = String.valueOf(listOfCompany.get(0).getComp_Code());
                 redisObjectUtil.addFieldToObject(key, "selectedCompany", listOfCompany.get(0));

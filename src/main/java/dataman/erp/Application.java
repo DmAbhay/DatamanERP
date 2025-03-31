@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+
 @SpringBootApplication
 @ComponentScan(basePackages = {"dataman.erp", "dataman.dmbase.redissessionutil", "dataman.dmbase.customconfig"})
 public class Application {
@@ -16,7 +17,7 @@ public class Application {
 
 		SpringApplication.run(Application.class, args);
 
-		String input = "SA1";
+		String input = "anuj8";
 
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
@@ -32,5 +33,4 @@ public class Application {
 			throw new RuntimeException("MD5 Algorithm not found", e);
 		}
 	}
-
 }

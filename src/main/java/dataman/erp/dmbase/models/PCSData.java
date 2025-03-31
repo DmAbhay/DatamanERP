@@ -18,12 +18,19 @@ public class PCSData {
     private String userName = null;
     private String regionalLanguage = null;
 
+    @JsonProperty("lstPLTs")
     public List<PLTDetailDTO> lstPLTs = new ArrayList<>();
+
+    @JsonProperty("pltSelected")
     public PLTDetailDTO pltSelected = null;
 
+    @JsonProperty("lstCompanys")
     public List<CompanyDetailDTO> lstCompanys = new ArrayList<>();
+
+    @JsonProperty("cSelected")
     public CompanyDetailDTO cSelected = null;
 
+    @JsonProperty("lstSites")
     public List<SiteDetailsDTO> lstSites = new ArrayList<>();
 
     @JsonProperty("sSelected")
