@@ -11,12 +11,13 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AuthRequestDTO {
-    private String username;
+    private String userName;
     private String password;
     private String userDescription;
     private String regionalLanguage;
     private String loginMode;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private Date loginDate;
+    private String loginDate;
+
 }

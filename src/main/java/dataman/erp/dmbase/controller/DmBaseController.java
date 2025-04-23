@@ -2,6 +2,7 @@ package dataman.erp.dmbase.controller;
 
 import dataman.dmbase.debug.Debug;
 import dataman.dmbase.redissessionutil.RedisObjectUtil;
+import dataman.dmbase.redissessionutil.SessionUtil;
 import dataman.erp.config.ExternalConfig;
 import dataman.erp.context.PCSDataStore;
 import dataman.erp.dmbase.models.CompanyDetailDTO;
@@ -39,6 +40,9 @@ public class DmBaseController {
 
     @Autowired
     private PCSDataStore pcsDataStore;
+
+    @Autowired
+    private SessionUtil sessionUtil;
 
     @GetMapping("/get-plts")
     public ResponseEntity<?> getPlts(@RequestHeader(value = "Authorization", required = true) String token, @RequestParam String username){
@@ -82,10 +86,16 @@ public class DmBaseController {
         Debug.printDebugBoundary("❤\uD83D\uDC96\uD83C\uDF39\uD83D\uDE4C✌✌");
 
 
-        String dbCompany = (String) redisObjectUtil.getObjectValue(key, "companyDB");
-        String db = redisObjectUtil.getObjectValueAsString(key, "companyDB");
+//        String dbCompany = (String) redisObjectUtil.getObjectValue(key, "companyDB");
+//        String db = redisObjectUtil.getObjectValueAsString(key, "companyDB");
+
+        String dbCompany = sessionUtil.getSsnDBName(key);
 
         redisObjectUtil.addFieldToObject(key, "selectedPlt", selectedPlt);
+
+        //set pltCode to session
+        sessionUtil.setSsnPltCode(key, String.valueOf(selectedPlt.getPLTCode()));
+        sessionUtil.setSsnCompName(key, selectedPlt.getComp_Name());
 
         PLTDetailDTO pltObject = (PLTDetailDTO) redisObjectUtil.getObjectValue(key, "selectedPlt");
 
@@ -125,6 +135,7 @@ public class DmBaseController {
         //if(true){
             CompanyDetailDTO selectedCompany = companyDetailDTOList.get(0);
             redisObjectUtil.addFieldToObject(key, "selectedCompany", selectedCompany);
+            sessionUtil.setSsnCompCode(key, String.valueOf(selectedCompany.getComp_Code()));
             List<SiteDetailsDTO> siteDetailsDTOList = pcsDataMapper.mapToSiteDetailsDTOList(dmBaseService.getSites(uName, externalConfig.getCompanyDb(), String.valueOf(selectedCompany.getComp_Code()), pltCode));
             pcsData.setCSelected(selectedCompany);
         }else{
@@ -151,6 +162,9 @@ public class DmBaseController {
         redisObjectUtil.addFieldToObject(key, "selectedCompany", selectedCompany);
 
         System.out.println("selected Company "+selectedCompany);
+        sessionUtil.setSsnCompCode(key, String.valueOf(selectedCompany.getComp_Code()));
+        sessionUtil.setSsnCompName(key, selectedCompany.getComp_Name());
+        sessionUtil.setSsnTransactionDBName(key, selectedCompany.getCentralData_Path());
 
         PLTDetailDTO pltDetailDTO = (PLTDetailDTO) redisObjectUtil.getObjectValue(key, "selectedPlt");
 
@@ -174,7 +188,10 @@ public class DmBaseController {
 
         if(siteDetailsDTOList != null && siteDetailsDTOList.size() == 1){
             redisObjectUtil.addFieldToObject(key, "selectedSite", siteDetailsDTOList.get(0));
-            pcsData.setLstSites(siteDetailsDTOList);
+            String siteCode = String.valueOf(siteDetailsDTOList.get(0).getCode());
+            sessionUtil.setSsnSiteCode(key, siteCode);
+            sessionUtil.setSsnRegionalLanguage(key, siteDetailsDTOList.get(0).getRegionalLanguage());
+            pcsData.setSSelected(siteDetailsDTOList.get(0));
         }else{
             pcsData.setLstSites(siteDetailsDTOList);
         }
